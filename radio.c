@@ -204,6 +204,9 @@ void _config()
 	value = _BV(EN_CRC) | _BV(CRCO) | _BV(PWR_UP) | _BV(PRIM_RX);
 	_set_register(CONFIG, &value, 1);
 
+    value = _BV(RX_DR) | _BV(TX_DS) | _BV(MAX_RT);
+    _set_register(STATUS, &value, 1);    
+
 	send_instruction(FLUSH_TX, NULL, NULL, 0);
 	send_instruction(FLUSH_RX, NULL, NULL, 0);
 }
@@ -228,7 +231,7 @@ void Radio_Init()
 	_config();
 
 	// Wait for the radio to power up.
-	_delay_ms(2);
+	_delay_ms(10);
 
 	// enable radio as a receiver
 	RADIO_CE_HIGH();
@@ -281,6 +284,7 @@ void Radio_Configure_Rx(RADIO_PIPE pipe, uint8_t* address, uint8_t enable)
 	else
 		value &= ~_BV(pipe);
 	_set_register(EN_RXADDR, &value, 1);
+
 }
 
 // default transmitter address is 0xe7e7e7e7e7.
@@ -437,38 +441,24 @@ ISR(INT4_vect)
 {
     uint8_t status;
     uint8_t pipe_number;
-    //uint8_t data[32];
-
+    
     RADIO_CE_LOW();
 
     status = _get_status();
 
     if (status & _BV(RX_DR))
     {
-    	//PORTD ^= _BV(PORTD4);
     	pipe_number =  (status & 0xE) >> 1;
     	radio_rxhandler(pipe_number);
-    	/*if (pipe_number > RADIO_PIPE_5) return;	// TODO: When this is integrated into the OS, make an OS_Abort() call.
-        // enable SPI
-        RADIO_CSN_LOW();
-        // read the payload into the MCU buffer
-    	SPI_Write_Byte(R_RX_PAYLOAD);
-    	SPI_ReadWrite_Block(data, data, rx_pipe_widths[pipe_number]);
-        // resynch SPI
-        RADIO_CSN_HIGH();*/
     }
     // We can get the TX_DS or the MAX_RT interrupt, but not both.
     if (status & _BV(TX_DS))
     {
-    	//PORTD ^= _BV(PORTD6);
-    	//_get_register(FIFO_STATUS, &fifo_status, 1);
-    	//if (fifo_status & _BV(TX_FIFO_EMPTY))
-    	{
-    		// if there's nothing left to transmit, switch back to receive mode.
-    		transmit_lock = 0;
-    		_reset_pipe0_address();
-    		_set_rx_mode();
-    	}
+        // if there's nothing left to transmit, switch back to receive mode.
+        transmit_lock = 0;
+        _reset_pipe0_address();
+        _set_rx_mode();
+
     	// indicate in the history that a packet was transmitted successfully by appending a 1.
     	tx_history <<= 1;
     	tx_history |= 1;
@@ -477,8 +467,6 @@ ISR(INT4_vect)
     }
     else if (status & _BV(MAX_RT))
     {
-    	//PORTD ^= _BV(PORTD7);
-
         // enable SPI
         RADIO_CSN_LOW();
         // flush the failed packet (it stays in the Tx FIFO; we could try to resend it by setting CE high)
