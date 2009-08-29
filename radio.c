@@ -206,9 +206,11 @@ static void configure_registers()
 	value = _BV(EN_CRC) | _BV(CRCO) | _BV(PWR_UP) | _BV(PRIM_RX);
 	set_register(CONFIG, &value, 1);
 
+	// clear the interrupt flags in case the radio's still asserting an old unhandled interrupt
     value = _BV(RX_DR) | _BV(TX_DS) | _BV(MAX_RT);
     set_register(STATUS, &value, 1);
 
+    // flush the FIFOs in case there are old data in them.
 	send_instruction(FLUSH_TX, NULL, NULL, 0);
 	send_instruction(FLUSH_RX, NULL, NULL, 0);
 }
@@ -230,9 +232,7 @@ void Radio_Init()
 	EICRB &= ~_BV(ISC70);
 	EIMSK |= _BV(INT7);
 
-	// A 10.3 ms delay is required between power off and power on states (controlled by 3.3 V supply)
-	// I suspect this isn't necessary as long as nothing is sent or received for 10 ms, but what the heck,
-	// we can afford to waste some time during initialization.
+	// A 10.3 ms delay is required between power off and power on states (controlled by 3.3 V supply).
 	_delay_ms(11);
 
 	// Configure the radio registers that are not application-dependent.
@@ -347,14 +347,8 @@ uint8_t Radio_Transmit(radiopacket_t* payload, RADIO_TX_WAIT wait)
     // The register will be set back to the original pipe 0 address when the TX_DS or MAX_RT interrupt is asserted.
     set_register(RX_ADDR_P0, (uint8_t*)tx_address, ADDRESS_LENGTH);
 
-    // enable SPI
-    CSN_LOW();
-    // send the "write transmit payload" instruction.
-    SPI_Write_Byte(W_TX_PAYLOAD);
-    // write the payload to the Tx FIFO
-    SPI_Write_Block((uint8_t*)payload,len);
-    // disable SPI
-    CSN_HIGH();
+    // transfer the packet to the radio's Tx FIFO for transmission
+    send_instruction(W_TX_PAYLOAD, payload, NULL, len);
 
     // start the transmission.
     CE_HIGH();
@@ -375,16 +369,6 @@ RADIO_RX_STATUS Radio_Receive(radiopacket_t* buffer)
 	uint8_t pipe_number;
 	uint8_t doMove = 1;
 	RADIO_RX_STATUS result;
-
-	/*if (block)	// I don't think you can send the R_RX_PAYLOAD instruction when the radio is transmitting.
-	{
-		//request_radio();
-		while (transmit_lock);
-	}
-	else
-	{
-		if (transmit_lock) return RADIO_RX_TRANSMITTING;
-	}*/
 
 	transmit_lock = 0;
 
@@ -475,12 +459,7 @@ ISR(INT7_vect)
     }
     else if (status & _BV(MAX_RT))
     {
-        // enable SPI
-        CSN_LOW();
-        // flush the failed packet (it stays in the Tx FIFO; we could try to resend it by setting CE high)
-        SPI_Write_Byte( FLUSH_TX );
-        // resynch SPI
-        CSN_HIGH();
+        send_instruction(FLUSH_TX, NULL, NULL, 0);
 
     	transmit_lock = 0;
     	reset_pipe0_address();
