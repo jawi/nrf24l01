@@ -414,7 +414,7 @@ RADIO_RX_STATUS Radio_Receive(radiopacket_t* buffer)
 }
 
 // This is only accurate if all the failed packets were sent using auto-ack.
-uint8_t Radio_Drop_Rate()
+uint8_t Radio_Success_Rate()
 {
 	uint16_t wh = tx_history;
 	uint8_t weight = 0;
@@ -426,6 +426,12 @@ uint8_t Radio_Drop_Rate()
 	wh = (16 - weight) * 100;
 	wh /= 16;
 	return wh;
+}
+
+void Radio_Flush()
+{
+	send_instruction(FLUSH_TX, NULL, NULL, 0);
+	send_instruction(FLUSH_RX, NULL, NULL, 0);
 }
 
 // Interrupt handler
