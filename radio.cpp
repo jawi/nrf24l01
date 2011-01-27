@@ -5,7 +5,7 @@
  *      Author: Neil MacMillan
  */
 #include "radio.h"
-#include "../arduinomega/WProgram.h"
+#include "../arduino/WProgram.h"
 
 // non-public constants and macros
 
@@ -13,21 +13,14 @@
 #define ADDRESS_LENGTH 5
 
 // Pin definitions for chip select and chip enable on the radio module
-/*#define CE_DDR		DDRB
-#define CSN_DDR		DDRE
-#define CE_PORT		PORTB
-#define CSN_PORT	PORTE
-#define CE_PIN		PB4
-#define CSN_PIN		PE6*/
-
 #define CE_PIN 8
-#define CSN_PIN 7
+#define CSN_PIN 9
 
 // Definitions for selecting and enabling the radio
-#define CSN_HIGH()	digitalWrite(CSN_PIN, HIGH);//CSN_PORT |=  _BV(CSN_PIN);
-#define CSN_LOW()	digitalWrite(CSN_PIN, LOW);//CSN_PORT &= ~_BV(CSN_PIN);
-#define CE_HIGH()	digitalWrite(CE_PIN, HIGH);//CE_PORT |=  _BV(CE_PIN);
-#define CE_LOW()	digitalWrite(CE_PIN, LOW);//CE_PORT &= ~_BV(CE_PIN);
+#define CSN_HIGH()	digitalWrite(CSN_PIN, HIGH);
+#define CSN_LOW()	digitalWrite(CSN_PIN, LOW);
+#define CE_HIGH()	digitalWrite(CE_PIN, HIGH);
+#define CE_LOW()	digitalWrite(CE_PIN, LOW);
 
 // Flag which denotes that the radio is currently transmitting
 static volatile uint8_t transmit_lock;
@@ -229,16 +222,10 @@ void Radio_Init()
 	CE_LOW();
 
 	// set as output AT90 pins connected to the radio's slave select and chip enable pins.
-	//CE_DDR |= _BV(CE_PIN);
-	//CSN_DDR |= _BV(CSN_PIN);
 	pinMode(CE_PIN, OUTPUT);
 	pinMode(CSN_PIN, OUTPUT);
 
 	// Enable radio interrupt.  This interrupt is triggered when data are received and when a transmission completes.
-	/*DDRE &= ~_BV(PORTE7);
-	EICRB |= _BV(ISC71);
-	EICRB &= ~_BV(ISC70);
-	EIMSK |= _BV(INT7);*/
 	attachInterrupt(0, int0handler, LOW);
 
 	// A 10.3 ms delay is required between power off and power on states (controlled by 3.3 V supply).
@@ -444,7 +431,6 @@ void Radio_Flush()
 }
 
 // Interrupt handler
-//ISR(INT7_vect)
 void int0handler()
 {
     uint8_t status;

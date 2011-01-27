@@ -19,7 +19,6 @@
 #include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "util/delay.h"
 #include "nRF24L01.h"
 #include "packet.h"
 #include "spi.h"

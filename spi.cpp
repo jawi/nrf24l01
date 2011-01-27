@@ -8,23 +8,23 @@
  */
 
 #include "spi.h"
-#include "../arduinomega/WProgram.h"
+#include "../arduino/WProgram.h"
 //#include "util/delay.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define SPI_DDR DDRB	// DDR of SPI port
-#define SPI_PORT PORTB	// SPI port
-#define SPI_MOSI PORTB2	// MOSI pin (Master out, Slave in)
-#define SPI_MISO PORTB3	// MISO pin (Master in, Slave out)
-#define SPI_SCK PORTB1	// SCK pin (SPI clock)
-#define SPI_SS PORTB0	// SS pin (Slave Select)
-
+#if 1  // Arduino Uno definitions
+#define MOSI 11
+#define MISO 12
+#define SCK 13
+#define SS 10
+#else  // Arduino Mega definitions
 #define MOSI 51
 #define MISO 50
 #define SCK 52
 #define SS 53
+#endif
 
 // wait for an SPI read/write operation to complete
 #define SPI_WAIT()              while ((SPSR & _BV(SPIF)) == 0);
@@ -40,9 +40,6 @@ void SPI_Init()
 	pinMode(MISO, INPUT);
 	pinMode(SCK, OUTPUT);
 	pinMode(SS, OUTPUT);
-    //SPI_DDR &= ~(_BV(SPI_MOSI)|_BV(SPI_MISO)|_BV(SPI_SS)|_BV(SPI_SCK));
-    // Define the following pins as output
-    //SPI_DDR |= (_BV(SPI_MOSI) | _BV(SPI_SS) | _BV(SPI_SCK));
 
 	/* SPCR format:
 	 *
@@ -57,15 +54,11 @@ void SPI_Init()
 	 * bit 0
 	 */
 
-    // Set the AT90's SS pin high during config (this disables the Flash RAM or something)
-    //SPI_PORT |= _BV(SPI_SS);
+    // Set the AT90's SS pin high so that this board doesn't get set to slave mode.
 	digitalWrite(SS, HIGH);
 
 	SPCR = _BV(SPE) | _BV(MSTR);	// enable SPI, set as master, set prescaler to f(osc)/4
 
-	//SPSR = _BV(SPI2X);							// Double SCK to f(osc)/2 (4 MHz)
-
-	//SPI_PORT &= ~_BV(SPI_SS);
 	digitalWrite(SS, LOW);
 }
 
