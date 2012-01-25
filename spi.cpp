@@ -8,7 +8,7 @@
  */
 
 #include "spi.h"
-#include "../arduino/WProgram.h"
+#include "../arduino/Arduino.h"
 //#include "util/delay.h"
 
 #include <avr/io.h>

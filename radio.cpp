@@ -5,7 +5,7 @@
  *      Author: Neil MacMillan
  */
 #include "radio.h"
-#include "../arduino/WProgram.h"
+#include "../arduino/Arduino.h"
 
 // non-public constants and macros
 
