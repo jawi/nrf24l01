@@ -14,18 +14,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#if defined(__AVR_ATmega128__)	// Arduino Mega
-#define MOSI 51
-#define MISO 50
-#define SCK 52
-#define SS 53
-#else  // Arduino Uno
-#define MOSI 11
-#define MISO 12
-#define SCK 13
-#define SS 10
-#endif
-
 // wait for an SPI read/write operation to complete
 #define SPI_WAIT()              while ((SPSR & _BV(SPIF)) == 0);
 
