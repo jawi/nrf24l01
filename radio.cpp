@@ -226,7 +226,7 @@ void Radio_Init()
 	pinMode(CSN_PIN, OUTPUT);
 
 	// Enable radio interrupt.  This interrupt is triggered when data are received and when a transmission completes.
-	attachInterrupt(0, int0handler, LOW);
+	attachInterrupt(0, int0handler, FALLING);
 
 	// A 10.3 ms delay is required between power off and power on states (controlled by 3.3 V supply).
 	delay(11);
