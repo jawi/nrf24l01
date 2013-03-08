@@ -102,7 +102,7 @@ void loop()
 			// Reply to the sender by sending an ACK packet, reusing the packet data structure.
 			packet.type = ACK;
 			// Se the ack message id:
-			packet.payload.ack.messageid = packet.payload.message.messageid;
+			packet.payload.ack.messageid = 44;
 		
 
 			if (Radio_Transmit(&packet, RADIO_WAIT_FOR_TX) == RADIO_TX_MAX_RT)

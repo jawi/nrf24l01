@@ -47,7 +47,7 @@ volatile uint8_t rxflag = 0;
  
  
 uint8_t station_addr[5] = { 0xE4, 0xE4, 0xE4, 0xE4, 0xE4 }; // Receiver address
-uint8_t my_addr[5] = { 0x98, 0x76, 0x54, 0x32, 0x10 }; // Transmitter address
+uint8_t my_addr[5] = { 0x98, 0x76, 0x54, 0x32, 0x11 }; // Transmitter address
  
 radiopacket_t packet;
 
@@ -109,7 +109,7 @@ void loop()
 		{
 			//digitalWrite(LED_PIN, LOW); // Turn off the led.
 		}
-	}
+    }
 }
 
 // The radio_rxhandler is called by the radio IRQ pin interrupt routine when RX_DR is read in STATUS register.
