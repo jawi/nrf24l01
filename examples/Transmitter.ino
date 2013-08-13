@@ -33,9 +33,9 @@
  
 #include "packet.h"
 #include "radio.h"
-#include <Metro.h> // Include the Metro library to create a periodic task for sending messages.
+//#include <Metro.h> // Include the Metro library to create a periodic task for sending messages.
 
-#define LED_PIN 11 // Change accordingly to your board.
+#define LED_PIN 13 // Change accordingly to your board.
 
 // Slowing down the clock because the teensy board running on 3.3V (16MHz in this case is not recommended).
 // If you power your board with 5V, comment the following lines.
@@ -55,8 +55,13 @@ radiopacket_t packet;
  
 void setup()
 {
+  //for (;;);
 	//CPU_PRESCALE(CPU_8MHz);
 	Serial.begin(57600);
+	pinMode(10, OUTPUT);
+	digitalWrite(10, LOW);
+	delay(100);
+	digitalWrite(10, HIGH);
 	//pinMode(LED_PIN, OUTPUT);
 	Radio_Init();
 
@@ -72,8 +77,9 @@ void setup()
 	snprintf((char*)packet.payload.message.messagecontent, sizeof(packet.payload.message.messagecontent), "Test message.");
 
 	Radio_Set_Tx_Addr(station_addr);
+	//Serial.println("Yay");
 	//digitalWrite(LED_PIN, HIGH);
-	Radio_Transmit(&packet, RADIO_WAIT_FOR_TX);
+	//Radio_Transmit(&packet, RADIO_WAIT_FOR_TX);
 	delay(100);
 }
 
@@ -86,6 +92,7 @@ void loop()
 	memcpy(packet.payload.message.address, my_addr, RADIO_ADDRESS_LENGTH);
 	packet.payload.message.messageid = 55;
 	snprintf((char*)packet.payload.message.messagecontent, sizeof(packet.payload.message.messagecontent), "Test message.");
+
 	if (Radio_Transmit(&packet, RADIO_WAIT_FOR_TX) == RADIO_TX_MAX_RT) // Transmitt packet.
 	{
 		Serial.println("Data not trasmitted. Max retry.");
@@ -94,6 +101,7 @@ void loop()
 	{
 		Serial.println("Data trasmitted.");
 	}
+	//Serial.println("Woo");
 	
 	// The rxflag is set by radio_rxhandler function below indicating that a
 	// new packet is ready to be read.
